@@ -1,5 +1,5 @@
 {
-    "name": "magepal/magento1-google-tag-manager",
+    "name": "sickdaflip/magento1-google-tag-manager",
     "description":"Google Tag Manager (GTM) for Magento with Advanced Data Layer",
     "keywords": [
         "magento",
@@ -12,6 +12,7 @@
     "license": "OSL-3.0",
     "type": "magento-module",
     "require": {
+        "magento-hackathon/magento-composer-installer": "*",
         "php": ">=5.3.0"
     },
     "extra": {
