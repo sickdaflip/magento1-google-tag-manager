@@ -28,18 +28,15 @@ class MagePal_GoogleTagManager_Block_Tm extends Mage_Core_Block_Template
      */
     protected $_dataLayerModel = null;
 
-
     protected $_customVariables = array();
 
     protected $_orderCollection = null;
-
 
     public function __construct() {
 
         $this->_cookieHelper = Mage::helper('core/cookie');
         $this->_gtmHelper = Mage::helper('googletagmanager');
         $this->_dataLayerModel = Mage::getModel('googletagmanager/dataLayer');
-
         $this->addVariable('ecommerce', array('currencyCode' => Mage::app()->getStore()->getCurrentCurrencyCode()));
     }
 
@@ -62,22 +59,24 @@ class MagePal_GoogleTagManager_Block_Tm extends Mage_Core_Block_Template
 
             foreach ($order->getAllVisibleItems() as $item) {
                 $product[] = array(
-                    'sku' => $item->getSku(),
-                    'name' => $item->getName(),
-                    'price' => $item->getBasePrice(),
-                    'quantity' => $item->getQtyOrdered()
+                    'item_id' => $item->getSku(),
+                    'item_name' => $item->getName(),
+                    'item_brand' => $item->getProduct()->getAttributeText('manufacturer'),
+                    'price' => $this->formatPrice($item->getPrice()),
+                    'quantity' => $this->formatQuantity($item->getQtyOrdered())
                 );
             }
 
             $transaction = array(
-                'transactionId' => $order->getIncrementId(),
-                'transactionAffiliation' => Mage::app()->getStore()->getFrontendName(),
-                'transactionTotal' => $order->getBaseGrandTotal(),
-                'transactionTax' => $order->getBaseTaxAmount(),
-                'transactionShipping' => $order->getBaseShippingAmount(),
-                'discountCode' => $order->getCouponCode(),
-                'discountPrice' => $order->getDiscountAmount(),
-                'transactionProducts' => $product
+                'transaction_id' => $order->getIncrementId(),
+                //'affiliation' => Mage::app()->getStore()->getFrontendName(),
+                'value' => $this->formatPrice($order->getBaseGrandTotal()),
+                'tax' => $this->formatPrice($order->getBaseTaxAmount()),
+                'shipping' => $this->formatPrice($order->getBaseShippingAmount()),
+                'currency' => $order->getBaseCurrencyCode(),
+                'coupon' => $order->getCouponCode(),
+                //'discount' => $order->getDiscountAmount(),
+                'items' => $product
             );
 
 
@@ -110,6 +109,7 @@ class MagePal_GoogleTagManager_Block_Tm extends Mage_Core_Block_Template
         Mage::dispatchEvent('magepal_data_layer', array('data_layer' => $this));
 
         $result = array();
+        $result[] = sprintf("dataLayer.push({ ecommerce: null });\n"); // Clear the previous ecommerce object.
         $result[] = sprintf("dataLayer.push(%s);\n", json_encode($this->_dataLayerModel->getVariables()));
 
         if(!empty($this->_customVariables) && is_array($this->_customVariables)){
@@ -145,6 +145,10 @@ class MagePal_GoogleTagManager_Block_Tm extends Mage_Core_Block_Template
 
     public function formatPrice($price){
         return $this->_dataLayerModel->formatPrice($price);
+    }
+
+    public function formatQuantity($quantity){
+        return $this->_dataLayerModel->formatQuantity($quantity);
     }
 
     public function getOrderCollection(){

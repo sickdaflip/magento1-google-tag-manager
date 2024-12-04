@@ -41,9 +41,30 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
         $this->_customerSession = Mage::getSingleton('customer/session');
         
         $this->fullActionName = Mage::app()->getFrontController()->getAction() ? Mage::app()->getFrontController()->getAction()->getFullActionName() : 'Unknown';;
-        
-        $this->addVariable('pageType', $this->fullActionName);
-        $this->addVariable('list', 'other');
+
+        // Switch events to GTag Referenz
+        switch($this->fullActionName) {
+            case 'catalog_category_view':
+                $this->event = 'view_item_list';
+                break;
+            case 'catalog_product_view':
+                $this->event = 'view_item';
+                break;
+            case 'checkout_index_index':
+                $this->event = 'view_cart';
+                break;
+            case 'checkout_cart_index':
+                $this->event = 'view_cart';
+                break;
+            case 'ajax_cart_add':
+                $this->event = 'add_to_cart';
+                break;
+            default: //fallback
+                $this->event = $this->fullActionName;
+        }
+
+        $this->addVariable('event', $this->event);
+        //$this->addVariable('list', 'other');
       
         $this->setCustomerDataLayer();
         $this->setProductDataLayer();
@@ -76,7 +97,7 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
         return $this;
     }
 
-    
+
     /**
      * Set category Data Layer
      */
@@ -89,7 +110,6 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
                 $category['name'] = $_category->getName();
                 
                 $this->addVariable('category', $category);
-                
                 $this->addVariable('list', 'category');
         }
 
@@ -107,10 +127,10 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
             $this->addVariable('list', 'detail');
 
             $product = array();
-            $product['id'] = $_product->getId();
-            $product['sku'] = $_product->getSku();
-            $product['name'] = $_product->getName();
-            // $this->addVariable('productPrice', $_product->getPrice());
+            $product['item_id'] = $_product->getSku();
+            $product['item_name'] = $_product->getName();
+            $product['item_brand'] = $_product->getAttributeText('manufacturer');
+            $product['price'] = $this->formatPrice($_product->getPrice());
             $this->addVariable('product', $product);
         }
 
@@ -143,14 +163,14 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
      * Set cart Data Layer
      */
     protected function setCartDataLayer() {
-        if($this->fullActionName === 'checkout_index_index'){
+        if($this->fullActionName === 'checkout_index_index' || $this->fullActionName === 'checkout_cart_index') {
+
             $this->addVariable('list', 'cart');
-        }
-        
+
         $quote = $this->getQuote();
         $cart = array();
 
-        $cart['hasItems'] = false;
+        //$cart['hasItems'] = false;
         
         if ($quote->getItemsCount()) {
             $items = array();
@@ -158,15 +178,16 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
             // set items
             foreach($quote->getAllVisibleItems() as $item){
                 $items[] = array(
-                    'sku' => $item->getSku(),
-                    'name' => $item->getName(),
+                    'item_id' => $item->getSku(),
+                    'item_name' => $item->getName(),
+                    'item_brand' => $item->getProduct()->getAttributeText('manufacturer'),
                     'price' => $this->formatPrice($item->getPrice()),
                     'quantity' => $item->getQty()
                 );
             }
             
             if(count($items) > 0){
-                $cart['hasItems'] = true;
+                //$cart['hasItems'] = true;
                 $cart['items'] = $items; 
             }
             $cart['total'] = $this->formatPrice($quote->getGrandTotal());
@@ -174,21 +195,19 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
             
             
             //set coupon code
-            $coupon = $quote->getCouponCode();
-            
-            $cart['hasCoupons'] = $coupon ? true : false;
-
-            if($coupon){
-                $cart['couponCode'] = $coupon;
-            }
+            //$coupon = $quote->getCouponCode();
+            //$cart['hasCoupons'] = $coupon ? true : false;
+            //if($coupon){
+            //    $cart['couponCode'] = $coupon;
+            //}
         }
         
         $this->addVariable('cart', $cart);
-        
+        }
         return $this;
+
     }
-    
-    
+
     /**
      * Get active quote
      *
@@ -201,13 +220,13 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
         }
         return $this->_quote;
     }
-    
+
     public function formatPrice($price){
-        return Mage::getModel('directory/currency')->format(
-            $price, 
-            array('display'=>Zend_Currency::NO_SYMBOL), 
-            false
-        );
+        return number_format($price, 2, '.','');
+    }
+
+    public function formatQuantity($quantity){
+        return number_format($quantity, 0);
     }
 
 }

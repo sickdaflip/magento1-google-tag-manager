@@ -9,7 +9,7 @@
 <config>
     <modules>
         <MagePal_GoogleTagManager>
-            <version>1.0.5</version>
+            <version>1.0.6</version>
         </MagePal_GoogleTagManager>
     </modules>
     <global>
@@ -28,6 +28,15 @@
                 <class>MagePal_GoogleTagManager_Helper</class>
             </googletagmanager>
         </helpers>
+        <sales>
+            <quote>
+                <item>
+                    <product_attributes>
+                        <manufacturer/>
+                    </product_attributes>
+                </item>
+            </quote>
+        </sales>
     </global>
     <frontend>
         <translate>
