@@ -37,7 +37,7 @@ class MagePal_GoogleTagManager_Block_Tm extends Mage_Core_Block_Template
         $this->_cookieHelper = Mage::helper('core/cookie');
         $this->_gtmHelper = Mage::helper('googletagmanager');
         $this->_dataLayerModel = Mage::getModel('googletagmanager/dataLayer');
-        $this->addVariable('ecommerce', array('currencyCode' => Mage::app()->getStore()->getCurrentCurrencyCode()));
+        //$this->addVariable('ecommerce', array('currencyCode' => Mage::app()->getStore()->getCurrentCurrencyCode()));
     }
 
     /**
@@ -69,18 +69,22 @@ class MagePal_GoogleTagManager_Block_Tm extends Mage_Core_Block_Template
 
             $transaction = array(
                 'transaction_id' => $order->getIncrementId(),
-                //'affiliation' => Mage::app()->getStore()->getFrontendName(),
+                'affiliation' => Mage::app()->getStore()->getFrontendName(),
                 'value' => $this->formatPrice($order->getBaseGrandTotal()),
                 'tax' => $this->formatPrice($order->getBaseTaxAmount()),
                 'shipping' => $this->formatPrice($order->getBaseShippingAmount()),
                 'currency' => $order->getBaseCurrencyCode(),
                 'coupon' => $order->getCouponCode(),
-                //'discount' => $order->getDiscountAmount(),
+                'discount' => $order->getDiscountAmount(),
                 'items' => $product
             );
 
+            $ecommerce = array(
+                'event' => 'purchase',
+                'ecommerce' => $transaction
+            );
 
-            $result[] = sprintf("dataLayer.push(%s);", json_encode($transaction));
+            $result[] = sprintf("dataLayer.push(%s);", json_encode($ecommerce));
         }
 
         return implode("\n", $result) . "\n";

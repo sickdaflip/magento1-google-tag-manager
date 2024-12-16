@@ -64,13 +64,11 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
         }
 
         $this->addVariable('event', $this->event);
-        //$this->addVariable('list', 'other');
-      
         $this->setCustomerDataLayer();
         $this->setProductDataLayer();
         $this->setCategoryDataLayer();
         $this->setCartDataLayer();
-          
+
     }
 
     /**
@@ -102,17 +100,18 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
      * Set category Data Layer
      */
     protected function setCategoryDataLayer() {
-        if($this->fullActionName === 'catalog_category_view'
-           && $_category = Mage::registry('current_category')
-        ) {
-                $category = array();
-                $category['id'] = $_category->getId();
-                $category['name'] = $_category->getName();
-                
-                $this->addVariable('category', $category);
-                $this->addVariable('list', 'category');
-        }
+        if($this->fullActionName === 'catalog_category_view' && $_category = Mage::registry('current_category')) {
 
+                //$category = array();
+
+                $ecommerce = array(
+                    'item_list_id' => $_category->getId(),
+                    'item_list_name' => $_category->getName(),
+                    //'items' => $category
+                );
+            $this->addVariable('ecommerce', $ecommerce);
+
+        }
         return $this;
     }
     
@@ -121,17 +120,21 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
      * Set product Data Layer
      */
     protected function setProductDataLayer() {
-        if($this->fullActionName === 'catalog_product_view'
-           && $_product = Mage::registry('current_product')
-        ) {
-            $this->addVariable('list', 'detail');
+        if($this->fullActionName === 'catalog_product_view' && $_product = Mage::registry('current_product')) {
 
             $product = array();
             $product['item_id'] = $_product->getSku();
             $product['item_name'] = $_product->getName();
             $product['item_brand'] = $_product->getAttributeText('manufacturer');
             $product['price'] = $this->formatPrice($_product->getPrice());
-            $this->addVariable('product', $product);
+
+            $ecommerce = array(
+                'currency' => $_product->getStore()->getBaseCurrencyCode(),
+                'items' => $product
+            );
+
+            $this->addVariable('ecommerce', $ecommerce);
+
         }
 
         return $this;
@@ -165,12 +168,9 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
     protected function setCartDataLayer() {
         if($this->fullActionName === 'checkout_index_index' || $this->fullActionName === 'checkout_cart_index') {
 
-            $this->addVariable('list', 'cart');
-
         $quote = $this->getQuote();
         $cart = array();
 
-        //$cart['hasItems'] = false;
         
         if ($quote->getItemsCount()) {
             $items = array();
@@ -185,24 +185,23 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
                     'quantity' => $item->getQty()
                 );
             }
-            
+
             if(count($items) > 0){
                 //$cart['hasItems'] = true;
-                $cart['items'] = $items; 
+                $cart['items'] = $items;
             }
-            $cart['total'] = $this->formatPrice($quote->getGrandTotal());
-            $cart['itemCount'] = $quote->getItemsCount();
-            
-            
-            //set coupon code
-            //$coupon = $quote->getCouponCode();
-            //$cart['hasCoupons'] = $coupon ? true : false;
-            //if($coupon){
-            //    $cart['couponCode'] = $coupon;
-            //}
+
         }
-        
-        $this->addVariable('cart', $cart);
+
+            $ecommerce = array(
+                'currency' => $item->getStore()->getBaseCurrencyCode(),
+                'value' => $this->formatPrice($quote->getGrandTotal()),
+                //'itemCount' => $quote->getItemsCount(),
+                'items' => $items
+            );
+
+            $this->addVariable('ecommerce', $ecommerce);
+
         }
         return $this;
 
