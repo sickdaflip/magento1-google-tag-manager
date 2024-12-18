@@ -194,7 +194,7 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
         }
 
             $ecommerce = array(
-                'currency' => $item->getStore()->getBaseCurrencyCode(),
+                'currency' => Mage::app()->getStore()->getCurrentCurrencyCode(),
                 'value' => $this->formatPrice($quote->getGrandTotal()),
                 //'itemCount' => $quote->getItemsCount(),
                 'items' => $items
