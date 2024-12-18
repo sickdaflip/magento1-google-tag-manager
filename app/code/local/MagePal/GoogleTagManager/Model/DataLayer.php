@@ -59,6 +59,9 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
             case 'ajax_cart_add':
                 $this->event = 'add_to_cart';
                 break;
+            case 'checkout_onepage_index':
+                $this->event = 'begin_checkout';
+                break;
             default: //fallback
                 $this->event = $this->fullActionName;
         }
@@ -68,6 +71,7 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
         $this->setProductDataLayer();
         $this->setCategoryDataLayer();
         $this->setCartDataLayer();
+        $this->setCheckoutDataLayer();
 
     }
 
@@ -209,6 +213,48 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
             }
 
         }
+
+            $ecommerce = array(
+                'currency' => Mage::app()->getStore()->getCurrentCurrencyCode(),
+                'value' => $this->formatPrice($quote->getGrandTotal()),
+                //'itemCount' => $quote->getItemsCount(),
+                'items' => $items
+            );
+
+            $this->addVariable('ecommerce', $ecommerce);
+
+        }
+        return $this;
+
+    }
+
+    protected function setCheckoutDataLayer() {
+        if($this->fullActionName === 'checkout_onepage_index') {
+
+            $quote = $this->getQuote();
+            $cart = array();
+
+
+            if ($quote->getItemsCount()) {
+                $items = array();
+
+                // set items
+                foreach($quote->getAllVisibleItems() as $item){
+                    $items[] = array(
+                        'item_id' => $item->getSku(),
+                        'item_name' => $item->getName(),
+                        'item_brand' => $item->getProduct()->getAttributeText('manufacturer'),
+                        'price' => $this->formatPrice($item->getPrice()),
+                        'quantity' => $item->getQty()
+                    );
+                }
+
+                if(count($items) > 0){
+                    //$cart['hasItems'] = true;
+                    $cart['items'] = $items;
+                }
+
+            }
 
             $ecommerce = array(
                 'currency' => Mage::app()->getStore()->getCurrentCurrencyCode(),
