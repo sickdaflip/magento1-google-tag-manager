@@ -8,10 +8,10 @@
 class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract {
     
     /**
-     * @var Quote|null
-     */
+ * @var Quote|null
+ */
     protected $_quote = null;
-    
+
     /**
      * Datalayer Variables
      * @var array
@@ -102,13 +102,28 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
     protected function setCategoryDataLayer() {
         if($this->fullActionName === 'catalog_category_view' && $_category = Mage::registry('current_category')) {
 
-                //$category = array();
+            $collection = Mage::getModel('catalog/category')->load($_category->getId())
+                ->getProductCollection()
+                ->addAttributeToSelect('*')
+                ->addAttributeToFilter('status', 1)
+                ->addAttributeToFilter('visibility', 4);
+
+                // set items
+                foreach($collection as $item){
+                    $items[] = array(
+                        'item_id' => $item->getSku(),
+                        'item_name' => $item->getName(),
+                        'item_brand' => $item->getAttributeText('manufacturer'),
+                        'price' => $this->formatPrice($item->getPrice())
+                    );
+                }
 
                 $ecommerce = array(
                     'item_list_id' => $_category->getId(),
                     'item_list_name' => $_category->getName(),
-                    //'items' => $category
+                    'items' => $items
                 );
+
             $this->addVariable('ecommerce', $ecommerce);
 
         }
@@ -122,15 +137,17 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
     protected function setProductDataLayer() {
         if($this->fullActionName === 'catalog_product_view' && $_product = Mage::registry('current_product')) {
 
-            $product = array();
-            $product['item_id'] = $_product->getSku();
-            $product['item_name'] = $_product->getName();
-            $product['item_brand'] = $_product->getAttributeText('manufacturer');
-            $product['price'] = $this->formatPrice($_product->getPrice());
+            $product = array(
+                'item_id' => $_product->getSku(),
+                'item_name' => $_product->getName(),
+                'item_brand' => $_product->getAttributeText('manufacturer'),
+                'price' => $this->formatPrice($_product->getPrice())
+            );
 
             $ecommerce = array(
-                'currency' => $_product->getStore()->getBaseCurrencyCode(),
-                'items' => $product
+                'currency' => Mage::app()->getStore()->getCurrentCurrencyCode(),
+                'value' => $this->formatPrice($_product->getPrice()),
+                'items' => [$product]
             );
 
             $this->addVariable('ecommerce', $ecommerce);
