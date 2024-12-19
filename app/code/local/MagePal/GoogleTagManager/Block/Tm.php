@@ -62,20 +62,20 @@ class MagePal_GoogleTagManager_Block_Tm extends Mage_Core_Block_Template
                     'item_id' => $item->getSku(),
                     'item_name' => $item->getName(),
                     'item_brand' => $item->getProduct()->getAttributeText('manufacturer'),
-                    'price' => $this->formatPrice($item->getPrice()),
-                    'quantity' => $this->formatQuantity($item->getQtyOrdered())
+                    'price' => +$this->formatPrice($item->getPrice()),
+                    'quantity' => +$this->formatQuantity($item->getQtyOrdered())
                 );
             }
 
             $transaction = array(
                 'transaction_id' => $order->getIncrementId(),
                 'affiliation' => Mage::app()->getStore()->getFrontendName(),
-                'value' => $this->formatPrice($order->getBaseGrandTotal()),
-                'tax' => $this->formatPrice($order->getBaseTaxAmount()),
-                'shipping' => $this->formatPrice($order->getBaseShippingAmount()),
+                'value' => +$this->formatPrice($order->getBaseGrandTotal()),
+                'tax' => +$this->formatPrice($order->getBaseTaxAmount()),
+                'shipping' => +$this->formatPrice($order->getBaseShippingAmount()),
                 'currency' => $order->getBaseCurrencyCode(),
                 'coupon' => $order->getCouponCode(),
-                'discount' => $order->getDiscountAmount(),
+                'discount' => +$order->getDiscountAmount(),
                 'items' => $product
             );
 

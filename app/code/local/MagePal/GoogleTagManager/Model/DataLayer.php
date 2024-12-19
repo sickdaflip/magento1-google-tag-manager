@@ -118,7 +118,7 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
                         'item_id' => $item->getSku(),
                         'item_name' => $item->getName(),
                         'item_brand' => $item->getAttributeText('manufacturer'),
-                        'price' => $this->formatPrice($item->getPrice())
+                        'price' => +$this->formatPrice($item->getPrice())
                     );
                 }
 
@@ -145,12 +145,12 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
                 'item_id' => $_product->getSku(),
                 'item_name' => $_product->getName(),
                 'item_brand' => $_product->getAttributeText('manufacturer'),
-                'price' => $this->formatPrice($_product->getPrice())
+                'price' => +$this->formatPrice($_product->getPrice())
             );
 
             $ecommerce = array(
                 'currency' => Mage::app()->getStore()->getCurrentCurrencyCode(),
-                'value' => $this->formatPrice($_product->getPrice()),
+                'value' => +$this->formatPrice($_product->getPrice()),
                 'items' => [$product]
             );
 
@@ -202,8 +202,8 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
                     'item_id' => $item->getSku(),
                     'item_name' => $item->getName(),
                     'item_brand' => $item->getProduct()->getAttributeText('manufacturer'),
-                    'price' => $this->formatPrice($item->getPrice()),
-                    'quantity' => $item->getQty()
+                    'price' => +$this->formatPrice($item->getPrice()),
+                    'quantity' => +$item->getQty()
                 );
             }
 
@@ -216,7 +216,7 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
 
             $ecommerce = array(
                 'currency' => Mage::app()->getStore()->getCurrentCurrencyCode(),
-                'value' => $this->formatPrice($quote->getGrandTotal()),
+                'value' => +$this->formatPrice($quote->getGrandTotal()),
                 //'itemCount' => $quote->getItemsCount(),
                 'items' => $items
             );
@@ -244,8 +244,8 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
                         'item_id' => $item->getSku(),
                         'item_name' => $item->getName(),
                         'item_brand' => $item->getProduct()->getAttributeText('manufacturer'),
-                        'price' => $this->formatPrice($item->getPrice()),
-                        'quantity' => $item->getQty()
+                        'price' => +$this->formatPrice($item->getPrice()),
+                        'quantity' => +$item->getQty()
                     );
                 }
 
@@ -258,7 +258,7 @@ class MagePal_GoogleTagManager_Model_DataLayer extends Mage_Core_Model_Abstract 
 
             $ecommerce = array(
                 'currency' => Mage::app()->getStore()->getCurrentCurrencyCode(),
-                'value' => $this->formatPrice($quote->getGrandTotal()),
+                'value' => +$this->formatPrice($quote->getGrandTotal()),
                 //'itemCount' => $quote->getItemsCount(),
                 'items' => $items
             );
